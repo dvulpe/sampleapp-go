@@ -56,7 +56,7 @@ func main() {
 
 	var stopCh = make(chan int)
 	var wg = new(sync.WaitGroup)
-
+	wg.Add(2)
 	go startServer(createHttpServer(successRate), stopCh, wg)
 	go startServer(createMetricsServer(), stopCh, wg)
 
@@ -73,7 +73,6 @@ func main() {
 }
 
 func startServer(srv *http.Server, stopCh chan int, wg *sync.WaitGroup) {
-	wg.Add(1)
 	defer wg.Done()
 	go func() {
 		log.Printf("Starting server on %v", srv.Addr)
