@@ -82,6 +82,7 @@ func startServer(srv *http.Server, stopCh chan int, wg *sync.WaitGroup) {
 	}()
 	<-stopCh
 	srv.SetKeepAlivesEnabled(false)
+	time.Sleep(10 * time.Second) // give k8s some time to sync services
 	ctx, cancel := context.WithTimeout(context.Background(), stopTimeout)
 	defer cancel()
 
