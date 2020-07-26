@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -36,6 +37,7 @@ var (
 		},
 		[]string{"code"},
 	)
+	healthy int32 = 0
 )
 
 func init() {
@@ -68,6 +70,7 @@ func main() {
 		log.Println("About to stop server")
 		close(stopCh)
 	}()
+	atomic.StoreInt32(&healthy, 1)
 	wg.Wait()
 	log.Printf("All stopped.")
 }
@@ -82,6 +85,7 @@ func startServer(srv *http.Server, stopCh chan int, wg *sync.WaitGroup) {
 	}()
 	<-stopCh
 	srv.SetKeepAlivesEnabled(false)
+	atomic.StoreInt32(&healthy, 0)
 	time.Sleep(10 * time.Second) // give k8s some time to sync services
 	ctx, cancel := context.WithTimeout(context.Background(), stopTimeout)
 	defer cancel()
@@ -135,8 +139,13 @@ func createMetricsServer() *http.Server {
 		fmt.Fprintf(w, "OK")
 	})
 	mux.HandleFunc("/readiness", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "OK")
+		if atomic.LoadInt32(&healthy) == 1 {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "OK")
+		} else {
+			w.WriteHeader(http.StatusBadGateway)
+			fmt.Fprintf(w, "Unhealthy")
+		}
 	})
 	return &http.Server{
 		Handler:      mux,
