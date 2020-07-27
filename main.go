@@ -84,9 +84,9 @@ func startServer(srv *http.Server, stopCh chan int, wg *sync.WaitGroup) {
 		}
 	}()
 	<-stopCh
-	//srv.SetKeepAlivesEnabled(false)
-	//atomic.StoreInt32(&healthy, 0)
-	//time.Sleep(10 * time.Second) // give k8s some time to sync services
+	srv.SetKeepAlivesEnabled(false)
+	atomic.StoreInt32(&healthy, 0)
+	time.Sleep(5 * time.Second) // give k8s some time to sync services
 	ctx, cancel := context.WithTimeout(context.Background(), stopTimeout)
 	defer cancel()
 
@@ -119,13 +119,13 @@ func createHttpServer(successRate int) *http.Server {
 
 func Handler(successRate int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		//if rand.Intn(100) > successRate {
-		//	w.WriteHeader(http.StatusInternalServerError)
-		//	fmt.Fprint(w, "Fail")
-		//} else {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Hello World!\n")
-		//}
+		if rand.Intn(100) > successRate {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(w, "Fail")
+		} else {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "Hello World!\n")
+		}
 	}
 }
 
