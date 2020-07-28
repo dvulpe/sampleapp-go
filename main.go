@@ -120,7 +120,7 @@ func createHttpServer(successRate int) *http.Server {
 
 func Handler(successRate int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if rand.Intn(50) > successRate {
+		if rand.Intn(101) > successRate {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Fail\n")
 		} else {
