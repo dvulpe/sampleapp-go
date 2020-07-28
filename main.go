@@ -109,19 +109,20 @@ func createHttpServer(successRate int) *http.Server {
 	)
 	mux.HandleFunc("/", handler)
 	srv := &http.Server{
-		Handler:      mux,
-		Addr:         fmt.Sprintf(":%d", serverPort),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		Handler:           mux,
+		Addr:              fmt.Sprintf(":%d", serverPort),
+		WriteTimeout:      15 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 	return srv
 }
 
 func Handler(successRate int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if rand.Intn(100) > successRate {
+		if rand.Intn(101) > successRate {
 			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, "Fail")
+			fmt.Fprint(w, "Fail\n")
 		} else {
 			w.WriteHeader(http.StatusOK)
 			fmt.Fprintf(w, "Hello World!\n")
