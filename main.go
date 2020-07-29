@@ -120,6 +120,7 @@ func createHttpServer(successRate int) *http.Server {
 
 func Handler(successRate int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(2 * time.Millisecond) // don't be too fast
 		if rand.Intn(101) > successRate {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, "Fail\n")
